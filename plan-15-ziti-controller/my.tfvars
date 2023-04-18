@@ -1,6 +1,0 @@
-ziti_charts = "/home/kbingham/Sites/netfoundry/github/openziti-helm-charts/charts"
-storage_class = "linode-block-storage"
-# container_image_repository = "docker.io/openziti/ziti-controller"
-container_image_repository = "docker.io/kbinghamnetfoundry/ziti-controller"
-container_image_tag = "release-next@sha256:cb9bfeba9e8c9c0aeff475f3bd767dcd76ca7e0bff28b15403c1f48aaff3c719"
-container_image_pull_policy = "Always"

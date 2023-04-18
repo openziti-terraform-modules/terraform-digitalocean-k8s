@@ -53,8 +53,8 @@ provider "helm" {
 }
 
 module "ziti_router_public" {
-    source                    = "/home/kbingham/Sites/netfoundry/github/terraform-k8s-openziti-router"
-    # source                    = "github.com/openziti-test-kitchen/terraform-k8s-ziti-router?ref=v0.1.1"
+    source                    = "github.com/openziti-test-kitchen/terraform-k8s-ziti-router?ref=v0.1.2"
+    # source                    = "/home/kbingham/Sites/netfoundry/github/terraform-k8s-openziti-router"
     name                      = "router1"
     image_repo                = var.container_image_repo
     image_tag                 = var.container_image_tag
