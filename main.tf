@@ -58,7 +58,7 @@ provider "kubectl" {     # duplcates config of provider "kubernetes" for cert-ma
 
 resource "digitalocean_kubernetes_cluster" "zrok_cluster" {
     name        = var.cluster_name
-    k8s_version = var.k8s_version
+    version = var.k8s_version
     region      = var.region
     tags        = var.tags
 
