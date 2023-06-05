@@ -207,7 +207,7 @@ resource "terraform_data" "wait_for_dns" {
         interpreter = [ "bash", "-c" ]
         command = <<-EOF
             set -euo pipefail
-            wget https://github.com/ameshkov/dnslookup/releases/download/v1.9.1/dnslookup-linux-amd64-v1.9.1.tar.gz
+            wget -q https://github.com/ameshkov/dnslookup/releases/download/v1.9.1/dnslookup-linux-amd64-v1.9.1.tar.gz
             tar -xzf dnslookup-linux-amd64-v1.9.1.tar.gz
             cd ./linux-amd64/
             ./dnslookup --version
@@ -221,6 +221,7 @@ resource "terraform_data" "wait_for_dns" {
                 OBSERVED=$(
                     RRTYPE=A ./dnslookup wild.${var.dns_zone} 1.1.1.1 | awk '/\s+IN\s+A\s+/ {A=$5}; END {print A}'
                 )
+                echo "OBSERVED=$OBSERVED, EXPECTED=$EXPECTED"
             done
             if [[ $OBSERVED != $EXPECTED ]]; then
                 echo "DNS record not found after 5 minutes"
