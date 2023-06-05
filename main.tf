@@ -33,7 +33,6 @@ provider "digitalocean" {
     token = var.DO_TOKEN
 }
 
-
 provider "helm" {
     repository_config_path = "${path.root}/.helm/repositories.yaml" 
     repository_cache       = "${path.root}/.helm"
@@ -156,6 +155,10 @@ resource "kubernetes_secret" "digitalocean_token" {
 #     }
 # }
 
+# Install ingress-nginx in advance, instead of as a sub-chart of the Ziti
+# controller, to get the external IP of the load balancer that is created by DO
+# for the ingress-nginx controller service. We'll use the IP to create the
+# wildcard DNS record for the cluster.
 resource "helm_release" "ingress_nginx" {
     depends_on       = [module.cert_manager]
     name             = "ingress-nginx"
