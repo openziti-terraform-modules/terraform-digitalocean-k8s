@@ -37,22 +37,22 @@ provider "helm" {
     repository_config_path = "${path.root}/.helm/repositories.yaml" 
     repository_cache       = "${path.root}/.helm"
     kubernetes {
-        host                   = data.digitalocean_kubernetes_cluster.zrok_cluster.endpoint
-        token                  = data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
-        cluster_ca_certificate = base64decode(data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
+        host                   = digitalocean_kubernetes_cluster.zrok_cluster.endpoint
+        token                  = digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
+        cluster_ca_certificate = base64decode(digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
     }
 }
 
 provider "kubernetes" {
-    host                   = data.digitalocean_kubernetes_cluster.zrok_cluster.endpoint
-    token                  = data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
-    cluster_ca_certificate = base64decode(data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
+    host                   = digitalocean_kubernetes_cluster.zrok_cluster.endpoint
+    token                  = digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
+    cluster_ca_certificate = base64decode(digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
 }
 
 provider "kubectl" {     # duplcates config of provider "kubernetes" for cert-manager module
-    host                   = data.digitalocean_kubernetes_cluster.zrok_cluster.endpoint
-    token                  = data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
-    cluster_ca_certificate = base64decode(data.digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
+    host                   = digitalocean_kubernetes_cluster.zrok_cluster.endpoint
+    token                  = digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].token
+    cluster_ca_certificate = base64decode(digitalocean_kubernetes_cluster.zrok_cluster.kube_config[0].cluster_ca_certificate)
     load_config_file       = false
 }
 
