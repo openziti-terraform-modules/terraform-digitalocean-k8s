@@ -160,7 +160,7 @@ resource "kubernetes_secret" "digitalocean_token" {
 # for the ingress-nginx controller service. We'll use the IP to create the
 # wildcard DNS record for the cluster.
 resource "helm_release" "ingress_nginx" {
-    depends_on       = [module.cert_manager]
+    # depends_on       = [module.cert_manager]
     name             = "ingress-nginx"
     version          = "<5"
     namespace        = var.zrok_namespace
