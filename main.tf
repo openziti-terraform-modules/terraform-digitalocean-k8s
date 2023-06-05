@@ -209,7 +209,7 @@ resource "terraform_data" "wait_for_dns" {
             set -euo pipefail
             wget https://github.com/ameshkov/dnslookup/releases/download/v1.9.1/dnslookup-linux-amd64-v1.9.1.tar.gz
             tar -xzf dnslookup-linux-amd64-v1.9.1.tar.gz
-            cd ./linux_amd64/
+            cd ./linux-amd64/
             ./dnslookup --version
             NOW=$(date +%s)
             END=$(($NOW + 310))
