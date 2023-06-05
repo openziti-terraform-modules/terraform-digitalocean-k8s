@@ -111,7 +111,7 @@ resource "kubernetes_secret" "digitalocean_token" {
     type = "Opaque"
     metadata {
         name      = "digitalocean-dns"
-        namespace = "cert-manager"
+        namespace = var.zrok_namespace
     }
     data = {
         token = var.DO_TOKEN
