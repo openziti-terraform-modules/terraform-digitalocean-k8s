@@ -207,7 +207,7 @@ resource "terraform_data" "wait_for_dns" {
         interpreter = [ "bash", "-c" ]
         command = <<-EOF
             set -euo pipefail
-            apt install -y bind9-dnsutils
+            sudo apt install -y bind9-dnsutils
             NOW=$(date +%s)
             END=$(($NOW + 310))
             EXPECTED=${data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.ip}
