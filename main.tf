@@ -204,6 +204,7 @@ resource "terraform_data" "wait_for_dns" {
         data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.ip
     ]
     provisioner "local-exec" {
+        interpreter = [ "bash", "-c" ]
         command = <<-EOF
             NOW=$(date +%s)
             END=$(($NOW + 310))
