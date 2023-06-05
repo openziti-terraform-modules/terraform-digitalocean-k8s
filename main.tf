@@ -207,14 +207,13 @@ resource "terraform_data" "wait_for_dns" {
         interpreter = [ "bash", "-c" ]
         command = <<-EOF
             set -euo pipefail
-            sudo apt install -y bind9-dnsutils
             NOW=$(date +%s)
             END=$(($NOW + 310))
             EXPECTED=${data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.ip}
             OBSERVED=""
             until [[ $NOW -ge $END ]] || [[ $OBSERVED == $EXPECTED ]]; do
                 sleep 5
-                OBSERVED=$(dig +short wild.${var.dns_zone} A)
+                OBSERVED=$(nslookup  wild.${var.dns_zone} | awk '/^Address:/ {A=$2}; END {print A}')
             done
             if [[ $OBSERVED != $EXPECTED ]]; then
                 echo "DNS record not found after 5 minutes"
