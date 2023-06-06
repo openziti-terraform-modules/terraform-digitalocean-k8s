@@ -189,6 +189,7 @@ resource "kubectl_manifest" "split_crds" {
 }
 
 module "ziti_controller" {
+    depends_on = [ kubectl_manifest.split_crds ]
     source = "github.com/openziti-test-kitchen/terraform-k8s-ziti-controller?ref=v0.1.1"
     # ziti_charts = var.ziti_charts
     ziti_controller_release = var.ziti_controller_release
