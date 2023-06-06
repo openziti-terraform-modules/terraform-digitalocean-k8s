@@ -220,7 +220,7 @@ resource "terraform_data" "wait_for_dns" {
                 sleep 5
                 # find the last A record in the response
                 OBSERVED=$(RRTYPE=A ./dnslookup wild.${var.dns_zone} 1.1.1.1 | awk '/\s+IN\s+A\s+/ {A=$5}; END {print A}')
-                (set -x; RRTYPE=A ./dnslookup wild.${var.dns_zone} 1.1.1.1 | awk '/\s+IN\s+A\s+/ {A=$5}; END {print A}' ;)
+                (set -x; RRTYPE=A ./dnslookup wild.${var.dns_zone} 1.1.1.1 ;)
                 echo "OBSERVED=$OBSERVED, EXPECTED=$EXPECTED"
             done
             if [[ $OBSERVED != $EXPECTED ]]; then
