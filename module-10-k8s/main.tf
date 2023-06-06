@@ -174,11 +174,12 @@ data "http" "trust_manager_crds" {
 
 # split CRD manifests
 data "kubectl_file_documents" "split_crds" {
-    content = <<EOH
-        ${data.http.cert_manager_crds.response_body}
-        ---
-        ${data.http.trust_manager_crds.response_body}
-    EOH
+    content = data.http.cert_manager_crds.response_body
+    # content = <<EOH
+    #     ${data.http.cert_manager_crds.response_body}
+    #     ---
+    #     ${data.http.trust_manager_crds.response_body}
+    # EOH
 }
 
 # apply each CRD
