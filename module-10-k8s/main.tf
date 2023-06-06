@@ -173,19 +173,18 @@ data "http" "trust_manager_crds" {
 }
 
 # split CRD manifests
-data "kubectl_file_documents" "split_crds" {
+data "kubectl_file_documents" "cert_manager_crds" {
     content = data.http.cert_manager_crds.response_body
-    # content = <<EOH
-    #     ${data.http.cert_manager_crds.response_body}
-    #     ---
-    #     ${data.http.trust_manager_crds.response_body}
-    # EOH
+}
+
+data "kubectl_file_documents" "trust_manager_crds" {
+    content = data.http.trust_manager_crds.response_body
 }
 
 # apply each CRD
 resource "kubectl_manifest" "split_crds" {
     depends_on = [ terraform_data.wait_for_dns ]
-    for_each   = data.kubectl_file_documents.split_crds.manifests
+    for_each   = data.kubectl_file_documents.cert_manager_crds.manifests + data.kubectl_file_documents.trust_manager_crds.manifests
     yaml_body  = each.value
 }
 
