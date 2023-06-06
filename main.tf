@@ -207,6 +207,7 @@ resource "terraform_data" "wait_for_dns" {
         interpreter = [ "bash", "-c" ]
         command = <<-EOF
             set -euo pipefail
+            # download a portable binary for resolving DNS records
             wget -q https://github.com/ameshkov/dnslookup/releases/download/v1.9.1/dnslookup-linux-amd64-v1.9.1.tar.gz
             tar -xzf dnslookup-linux-amd64-v1.9.1.tar.gz
             cd ./linux-amd64/
@@ -221,6 +222,7 @@ resource "terraform_data" "wait_for_dns" {
                 OBSERVED=$(
                     RRTYPE=A ./dnslookup wild.${var.dns_zone} 1.1.1.1 | awk '/\s+IN\s+A\s+/ {A=$5}; END {print A}'
                 )
+                OBSERVED=kentest
                 echo "OBSERVED=$OBSERVED, EXPECTED=$EXPECTED"
             done
             if [[ $OBSERVED != $EXPECTED ]]; then
