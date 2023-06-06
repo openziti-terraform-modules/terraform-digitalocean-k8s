@@ -212,6 +212,11 @@ module "ziti_controller" {
         }
         trust-manager = {
             enabled = true
+            app = {
+                trust = {
+                    namespace = var.zrok_namespace
+                }
+            }
         }
     }
 }
