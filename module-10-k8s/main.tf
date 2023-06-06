@@ -7,24 +7,21 @@ terraform {
     #   TF_WORKSPACE
     cloud {}
     required_providers {
-        local = {
-            version = "~> 2.1"
-        }
         kubectl = {
             source  = "gavinbunney/kubectl"
-            version = "1.13.0"
+            version = "~> 1.14"
         }
         helm = {
             source  = "hashicorp/helm"
-            version = "2.5.0"
+            version = "~> 2.10"
         }
         kubernetes = {
             source  = "hashicorp/kubernetes"
-            version = "~> 2.19"
+            version = "~> 2.21"
         }
         digitalocean = {
             source = "digitalocean/digitalocean"
-            version = "2.27.1"
+            version = "~> 2.27"
         }
     }
 }
@@ -71,42 +68,6 @@ resource "digitalocean_kubernetes_cluster" "zrok_cluster" {
     }
 }
 
-# module "cert_manager" {
-#     depends_on = [linode_lke_cluster.linode_lke]
-#     source        = "terraform-iaac/cert-manager/kubernetes"
-
-#     cluster_issuer_email                   = var.email
-#     cluster_issuer_name                    = var.cluster_issuer_name
-#     cluster_issuer_server                  = var.cluster_issuer_server
-#     cluster_issuer_private_key_secret_name = "${var.cluster_issuer_name}-secret"
-#     additional_set = [{
-#         name = "enableCertificateOwnerRef"
-#         value = "true"
-#     }]
-#     solvers = [
-#         {
-#             http01 = {
-#                 ingress = {
-#                     class = "nginx"
-#                 }
-#             },
-#         },
-#         {
-#             selector = {
-#                 dnsZones = [var.dns_zone]
-#             },
-#             dns01 = {
-#                 digitalocean = {
-#                     tokenSecretRef = {
-#                         key = "token"
-#                         name = "digitalocean-dns"
-#                     }
-#                 }
-#             }
-#         }
-#     ]
-# }
-
 resource "kubernetes_secret" "digitalocean_token" {
     type = "Opaque"
     metadata {
@@ -123,44 +84,11 @@ resource "kubernetes_secret" "digitalocean_token" {
     }
 }
 
-# resource "kubernetes_namespace" ziti {
-#     metadata {
-#         name = var.ziti_namespace
-#         labels = {
-#             # this label is selected by trust-manager to sync the CA trust bundle
-#             "openziti.io/namespace": "enabled"
-#         }
-#     }
-#     lifecycle {
-#         ignore_changes = [
-#             metadata[0].annotations
-#         ]
-#     }
-
-# }
-
-# resource "helm_release" "trust_manager" {
-#     depends_on   = [
-#         module.cert_manager,
-#         kubernetes_namespace.ziti
-#     ]
-#     chart      = "trust-manager"
-#     repository = "https://charts.jetstack.io"
-#     name       = "trust-manager"
-#     version      = "<0.5"
-#     namespace  = module.cert_manager.namespace
-#     set {
-#         name = "app.trust.namespace"
-#         value = var.ziti_namespace
-#     }
-# }
-
 # Install ingress-nginx in advance, instead of as a sub-chart of the Ziti
 # controller, to get the external IP of the load balancer that is created by DO
 # for the ingress-nginx controller service. We'll use the IP to create the
 # wildcard DNS record for the cluster.
 resource "helm_release" "ingress_nginx" {
-    # depends_on       = [module.cert_manager]
     name             = "ingress-nginx"
     version          = "<5"
     namespace        = var.zrok_namespace
@@ -211,7 +139,7 @@ resource "terraform_data" "wait_for_dns" {
             wget -q https://github.com/ameshkov/dnslookup/releases/download/v1.9.1/dnslookup-linux-amd64-v1.9.1.tar.gz
             tar -xzf dnslookup-linux-amd64-v1.9.1.tar.gz
             cd ./linux-amd64/
-            ./dnslookup --version
+            ./dnslookup --version >/dev/null
             NOW=$(date +%s)
             END=$(($NOW + 310))
             EXPECTED=${data.kubernetes_service.ingress_nginx_controller.status.0.load_balancer.0.ingress.0.ip}
@@ -227,5 +155,59 @@ resource "terraform_data" "wait_for_dns" {
                 exit 1
             fi
         EOF
+    }
+}
+
+# fetch CRD manifests
+data "http" "cert_manager_crds" {
+    # url = "https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.crds.yaml"
+    url = "https://github.com/cert-manager/cert-manager/releases/download/v1.12.1/cert-manager.crds.yaml"
+}
+
+data "http" "trust_manager_crds" {
+    url = "https://raw.githubusercontent.com/cert-manager/trust-manager/v0.5.0/deploy/crds/trust.cert-manager.io_bundles.yaml"
+}
+
+# split CRD manifests
+data "kubectl_file_documents" "split_crds" {
+    content = <<EOH
+        ${data.http.cert_manager_crds.body}
+        ---
+        ${data.http.trust_manager_crds.body}
+    EOH
+}
+
+# apply each CRD
+resource "kubectl_manifest" "split_crds" {
+    depends_on = [ terraform_data.wait_for_dns ]
+    for_each   = data.kubectl_file_documents.split_crds.manifests
+    yaml_body  = each.value
+}
+
+module "ziti_controller" {
+    depends_on = [ kubectl_manifest.split_crds ]
+    source = "github.com/openziti-test-kitchen/terraform-k8s-ziti-controller?ref=v0.1.1"
+    # ziti_charts = var.ziti_charts
+    ziti_controller_release = var.ziti_controller_release
+    ziti_namespace = var.zrok_namespace
+    dns_zone = var.dns_zone
+    storage_class = var.storage_class
+    values = {
+        # image = {
+        #     repository = var.container_image_repository
+        #     tag = var.container_image_tag != "" ? var.container_image_tag : ""
+        #     pullPolicy = var.container_image_pull_policy
+        # }
+        fabric = {
+            events = {
+                enabled = true
+            }
+        }
+        cert-manager = {
+            enabled = true
+        }
+        trust-manager = {
+            enabled = true
+        }
     }
 }

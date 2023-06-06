@@ -50,3 +50,13 @@ variable "wildcard_ttl_sec" {
 variable "zrok_namespace" {
     default     = "zrok"
 }
+
+variable "ziti_controller_release" {
+    description = "Helm release name for ziti-controller"
+    default = "zrok-ziti-ctrl"
+}
+
+variable "storage_class" {
+    description = "Storage class to use for persistent volumes"
+    default = ""
+}
