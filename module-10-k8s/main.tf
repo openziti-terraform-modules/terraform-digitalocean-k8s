@@ -184,7 +184,7 @@ data "kubectl_file_documents" "trust_manager_crds" {
 # apply each CRD
 resource "kubectl_manifest" "split_crds" {
     depends_on = [ terraform_data.wait_for_dns ]
-    for_each   = concat(data.kubectl_file_documents.cert_manager_crds.manifests, data.kubectl_file_documents.trust_manager_crds.manifests)
+    for_each   = merge(data.kubectl_file_documents.cert_manager_crds.manifests, data.kubectl_file_documents.trust_manager_crds.manifests)
     yaml_body  = each.value
 }
 
