@@ -190,7 +190,7 @@ resource "kubectl_manifest" "split_manifests" {
 
 module "ziti_controller" {
     depends_on = [ kubectl_manifest.split_manifests ]
-    source = "github.com/openziti-terraform-modules/terraform-k8s-openziti-controller?ref=0.1.2"
+    source = "github.com/openziti-terraform-modules/terraform-k8s-openziti-controller?ref=v0.1.2"
     chart_repo = "https://nuc2fsxoxep5.canary.openziti.io/"
     ziti_controller_release = var.ziti_controller_release
     ziti_namespace = var.zrok_namespace
