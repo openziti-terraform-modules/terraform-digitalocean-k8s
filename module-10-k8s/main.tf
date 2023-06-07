@@ -182,14 +182,14 @@ data "kubectl_file_documents" "trust_manager_crds" {
 }
 
 # apply each CRD
-resource "kubectl_manifest" "split_crds" {
+resource "kubectl_manifest" "split_manifests" {
     depends_on = [ terraform_data.wait_for_dns ]
     for_each   = merge(data.kubectl_file_documents.cert_manager_crds.manifests, data.kubectl_file_documents.trust_manager_crds.manifests)
     yaml_body  = each.value
 }
 
 module "ziti_controller" {
-    depends_on = [ kubectl_manifest.split_crds ]
+    depends_on = [ kubectl_manifest.split_manifests ]
     source = "github.com/openziti-test-kitchen/terraform-k8s-ziti-controller?ref=override-version"
     chart_repo = "https://nuc2fsxoxep5.canary.openziti.io/"
     ziti_controller_release = var.ziti_controller_release
