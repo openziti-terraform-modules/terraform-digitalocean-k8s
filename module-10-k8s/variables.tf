@@ -53,7 +53,7 @@ variable "zrok_namespace" {
 
 variable "ziti_controller_release" {
     description = "Helm release name for ziti-controller"
-    default = "zrok-ziti"
+    default = "ziti"
 }
 
 variable "storage_class" {
