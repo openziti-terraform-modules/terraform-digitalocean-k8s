@@ -190,8 +190,8 @@ resource "kubectl_manifest" "split_crds" {
 
 module "ziti_controller" {
     depends_on = [ kubectl_manifest.split_crds ]
-    source = "github.com/openziti-test-kitchen/terraform-k8s-ziti-controller?ref=v0.1.1"
-    # ziti_charts = var.ziti_charts
+    source = "github.com/openziti-test-kitchen/terraform-k8s-ziti-controller?ref=override-version"
+    chart_repo = "https://nuc2fsxoxep5.canary.openziti.io/"
     ziti_controller_release = var.ziti_controller_release
     ziti_namespace = var.zrok_namespace
     dns_zone = var.dns_zone
@@ -217,6 +217,9 @@ module "ziti_controller" {
                     namespace = var.zrok_namespace
                 }
             }
+        }
+        defaultRouter = {
+            enabled = true
         }
     }
 }
