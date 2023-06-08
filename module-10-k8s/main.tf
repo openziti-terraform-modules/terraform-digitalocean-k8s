@@ -190,8 +190,7 @@ resource "kubectl_manifest" "split_manifests" {
 
 module "ziti_controller" {
     depends_on = [ kubectl_manifest.split_manifests ]
-    # source = "github.com/openziti-terraform-modules/terraform-k8s-openziti-controller?ref=v0.1.3"
-    source = "github.com/openziti-terraform-modules/terraform-k8s-openziti-controller?ref=fix-timeout-seconds"
+    source = "github.com/openziti-terraform-modules/terraform-k8s-openziti-controller?ref=v0.1.3"
     chart_repo = "https://nuc2fsxoxep5.canary.openziti.io/"
     ziti_controller_release = var.ziti_controller_release
     ziti_namespace = var.zrok_namespace
@@ -223,4 +222,44 @@ module "ziti_controller" {
             enabled = true
         }
     }
+}
+
+resource "helm_release" "ziti_router" {
+    depends_on = [ module.ziti_controller ]
+    name       = var.ziti_router_release
+    namespace  = var.zrok_namespace
+    repository = "https://openziti.github.io/helm-charts"
+    chart      = var.ziti_charts != "" ? "${var.ziti_charts}/ziti-router" : "ziti-router"
+    version    = "~> 0.5"
+    wait_for_jobs = true
+    values     = [yamlencode(merge({
+        # image = {
+        #     repository = var.image_repo
+        #     tag = var.image_tag
+        #     pullPolicy = var.image_pull_policy
+        # }
+        edge = {
+            enabled = true
+            advertisedHost = "${var.ziti_router_release}.${var.dns_zone}"
+            advertisedPort = 443
+            service = {
+                enabled = true
+                type = "ClusterIP"
+            }
+            ingress = {
+                enabled = var.edge_advertised_host != "" ? true : false
+                ingressClassName = "nginx"
+                annotations = var.ingress_annotations
+            }
+        }
+        persistence = {
+            storageClass = var.storage_class != "-" ? var.storage_class : ""
+        }
+        ctrl = {
+            endpoint = module.ziti_controller.ziti_controller_ctrl_internal_host
+        }
+        enrollmentJwt = try(jsondecode(restapi_object.ziti_router.api_response).data.enrollmentJwt, "-")
+    },
+    var.values
+    ))]
 }

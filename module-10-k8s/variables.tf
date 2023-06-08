@@ -60,3 +60,9 @@ variable "storage_class" {
     description = "Storage class to use for persistent volumes"
     default = ""
 }
+
+variable "ziti_charts" {
+    description = "Filesystem path to source OpenZiti Helm Charts instead of Helm repo"
+    type = string
+    default = ""
+}
